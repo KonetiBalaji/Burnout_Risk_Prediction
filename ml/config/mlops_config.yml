@@ -1,0 +1,284 @@
+# MLOps Configuration - Created by Balaji Koneti
+# Configuration for automated retraining, monitoring, and deployment
+
+# Retraining triggers configuration
+retraining_triggers:
+  # Performance-based triggers
+  performance_threshold: 0.1  # 10% performance degradation triggers retraining
+  performance_metrics: ["f1_score", "recall", "accuracy"]
+  
+  # Drift-based triggers
+  drift_threshold: 0.15  # 15% drift threshold
+  drift_detection_methods: ["statistical", "data", "concept"]
+  
+  # Time-based triggers
+  time_interval_days: 30  # Retrain every 30 days
+  max_model_age_days: 90  # Force retraining after 90 days
+  
+  # Data-based triggers
+  data_size_threshold: 1000  # Minimum new data points for retraining
+  data_quality_threshold: 0.95  # Minimum data quality score
+
+# Model deployment configuration
+deployment:
+  # Auto-deployment settings
+  auto_deploy: false  # Require manual approval for production
+  staging_period_hours: 24  # 24 hours in staging before production
+  
+  # Performance thresholds for deployment
+  performance_threshold: 0.85  # Minimum F1 score
+  recall_threshold: 0.85  # Minimum recall (critical for burnout detection)
+  accuracy_threshold: 0.80  # Minimum accuracy
+  
+  # Model comparison
+  compare_with_baseline: true
+  minimum_improvement: 0.02  # 2% improvement over baseline required
+  
+  # Rollback configuration
+  auto_rollback: true
+  rollback_threshold: 0.1  # 10% performance drop triggers rollback
+
+# Model monitoring configuration
+monitoring:
+  # Monitoring frequency
+  check_interval_hours: 6  # Check every 6 hours
+  batch_size: 1000  # Process data in batches of 1000
+  
+  # Drift detection
+  statistical_drift:
+    method: "ks_test"
+    threshold: 0.05
+    features: "all"
+  
+  data_drift:
+    method: "distribution_comparison"
+    threshold: 0.1
+    features: "all"
+  
+  concept_drift:
+    method: "confidence_analysis"
+    threshold: 0.15
+    window_size: 1000
+  
+  performance_drift:
+    method: "metric_comparison"
+    threshold: 0.1
+    metrics: ["f1_score", "recall", "precision"]
+  
+  # Alerting
+  alerting:
+    enabled: true
+    channels: ["email", "slack"]
+    thresholds:
+      critical: 0.2  # 20% degradation
+      warning: 0.1   # 10% degradation
+
+# Experiment tracking configuration
+experiment_tracking:
+  # MLflow configuration
+  tracking_uri: "http://localhost:5000"
+  registry_uri: "sqlite:///mlflow.db"
+  
+  # Experiment settings
+  experiment_name: "burnout-risk-prediction"
+  auto_log_models: true
+  log_artifacts: true
+  
+  # Model registry
+  model_registry:
+    name: "burnout-risk-prediction"
+    stages: ["None", "Staging", "Production", "Archived"]
+    auto_transition: false
+
+# Data pipeline configuration
+data_pipeline:
+  # Data sources
+  sources:
+    calendar_api:
+      enabled: true
+      provider: "google"  # google, outlook, caldav
+      sync_interval_hours: 1
+    
+    email_api:
+      enabled: true
+      provider: "gmail"  # gmail, outlook, imap
+      sync_interval_hours: 1
+    
+    survey_data:
+      enabled: false
+      provider: "custom"
+      sync_interval_hours: 24
+  
+  # Data validation
+  validation:
+    enabled: true
+    rules_file: "config/data_validation_rules.yml"
+    auto_fix: false
+  
+  # Data storage
+  storage:
+    format: "parquet"
+    compression: "snappy"
+    partitioning: ["year", "month", "day"]
+    retention_days: 365
+
+# Feature engineering configuration
+feature_engineering:
+  # Feature types
+  temporal_features:
+    enabled: true
+    windows: [7, 14, 30]  # days
+    aggregations: ["mean", "std", "min", "max", "count"]
+  
+  text_features:
+    enabled: true
+    methods: ["sentiment", "topic_modeling", "keyword_extraction"]
+    languages: ["en"]
+  
+  interaction_features:
+    enabled: true
+    max_interactions: 3
+    correlation_threshold: 0.7
+  
+  # Feature selection
+  feature_selection:
+    enabled: true
+    method: "mutual_information"
+    max_features: 50
+    min_importance: 0.01
+
+# Model training configuration
+model_training:
+  # Model types
+  models:
+    baseline:
+      - "RandomForestClassifier"
+      - "LogisticRegression"
+      - "SVM"
+    
+    ensemble:
+      - "XGBClassifier"
+      - "LGBMClassifier"
+      - "VotingClassifier"
+  
+  # Hyperparameter optimization
+  hyperparameter_tuning:
+    enabled: true
+    method: "optuna"
+    n_trials: 100
+    timeout_hours: 2
+  
+  # Cross-validation
+  cross_validation:
+    method: "stratified_kfold"
+    n_splits: 5
+    shuffle: true
+    random_state: 42
+  
+  # Training data
+  training_data:
+    train_size: 0.7
+    validation_size: 0.15
+    test_size: 0.15
+    stratify: true
+
+# Model evaluation configuration
+model_evaluation:
+  # Metrics
+  primary_metrics: ["f1_score", "recall", "precision", "accuracy"]
+  secondary_metrics: ["roc_auc", "pr_auc", "confusion_matrix"]
+  
+  # Business metrics
+  business_metrics:
+    enabled: true
+    cost_matrix:
+      false_negative: 100  # High cost of missing burnout
+      false_positive: 10   # Lower cost of false alarm
+  
+  # Explainability
+  explainability:
+    enabled: true
+    methods: ["shap", "lime", "permutation_importance"]
+    top_features: 10
+  
+  # Visualization
+  plots:
+    enabled: true
+    types: ["roc_curve", "pr_curve", "confusion_matrix", "feature_importance"]
+
+# Infrastructure configuration
+infrastructure:
+  # Compute resources
+  compute:
+    cpu_cores: 4
+    memory_gb: 8
+    gpu_enabled: false
+  
+  # Storage
+  storage:
+    models_dir: "models"
+    data_dir: "data"
+    reports_dir: "reports"
+    backups_dir: "backups"
+  
+  # Networking
+  networking:
+    ml_service_port: 8001
+    mlflow_port: 5000
+    api_timeout: 30
+  
+  # Security
+  security:
+    model_encryption: false
+    api_authentication: true
+    data_encryption: true
+
+# Notification configuration
+notifications:
+  # Email notifications
+  email:
+    enabled: true
+    smtp_server: "smtp.gmail.com"
+    smtp_port: 587
+    recipients: ["ml-team@company.com"]
+  
+  # Slack notifications
+  slack:
+    enabled: false
+    webhook_url: ""
+    channel: "#ml-alerts"
+  
+  # Webhook notifications
+  webhook:
+    enabled: false
+    url: ""
+    timeout: 30
+
+# Logging configuration
+logging:
+  level: "INFO"
+  format: "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
+  file_rotation: true
+  max_file_size_mb: 100
+  backup_count: 5
+  
+  # Log destinations
+  destinations:
+    console: true
+    file: true
+    remote: false
+
+# Backup and recovery
+backup:
+  enabled: true
+  frequency: "daily"
+  retention_days: 30
+  include_models: true
+  include_data: false
+  include_configs: true
+  
+  # Backup storage
+  storage:
+    type: "local"  # local, s3, gcs
+    path: "backups"
+    compression: true
